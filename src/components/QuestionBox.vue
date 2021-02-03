@@ -1,13 +1,17 @@
 <template>
   <div class="question-box-container">
     <div class="question-box">
-      <h6>{{ this.question ? decodeString(this.question.question) : "" }}</h6>
+      <h6 @change="updateData">{{ this.question ? decodeString(this.question.question) : "" }}</h6>
 
       <hr>
-      <p v-for="answer in listOfAnswers" :key="answer">{{ answer }}</p>
+      <p @click="answerClicked(index)" v-for="(answer, index) in listOfAnswers" :key="index"
+         :class="{selected: selectedIndex == index, correct: index == revealCorrectIndex, incorrect: index == selectedIndex && revealCorrectIndex != -1}">
+        {{ decodeString(answer) }}
+      </p>
 
       <div>
-        <button class="cool-button submit">Submit</button>
+        <button @click="prevQuestion" class="cool-button prev">Previous</button>
+        <button @click="submitAnswer" class="cool-button submit">Submit</button>
         <button @click="nextQuestion" class="cool-button next">Next</button>
       </div>
 
@@ -22,18 +26,66 @@ export default {
   name: "QuestionBox",
   props: {
     'question': Object,
-    'nextQuestion': Function
+    'nextQuestion': Function,
+    'prevQuestion': Function,
+    'questionAnswered': Function
+
+  },
+  data() {
+    return {
+      correctIndex: -1,
+      selectedIndex: -1,
+      revealCorrectIndex: -1
+    }
   },
   computed: {
+    /*selectedIndex: function(){
+      return this.question.selectedIndex;
+    },*/
     listOfAnswers: function () {
       if (!this.question) return null;
-      let list = this.question.incorrect_answers;
-      let r = Math.floor(Math.random() * 3);
+      let list = [...this.question.incorrect_answers];
+      let r;
+      if (this.question.correctIndex >= 0) {
+        r = this.question.correctIndex;
+      } else {
+
+        r = Math.floor(Math.random() * 3);
+        this.storeCorrectIndex(r);
+      }
       list.splice(r, 0, this.question.correct_answer);
       return list;
     }
   },
+  updated() {
+    this.updateData();
+  },
   methods: {
+    updateData() {
+      this.selectedIndex = this.question.selectedIndex;
+      this.revealCorrectIndex = this.question.revealCorrectIndex;
+    },
+    submitAnswer() {
+      if (this.selectedIndex == -1) return;
+      if (this.revealCorrectIndex != -1) return;
+      this.question.revealCorrectIndex = this.question.correctIndex;
+      this.revealCorrectIndex = this.question.revealCorrectIndex;
+      if (this.selectedIndex == this.revealCorrectIndex) {
+        this.questionAnswered(true)
+      } else {
+        this.questionAnswered(false)
+      }
+    },
+
+    answerClicked(el) {
+      if (this.question.revealCorrectIndex >= 0) return;
+      console.log("answer clicked")
+      this.selectedIndex = el;
+      this.question.selectedIndex = el;
+    },
+    storeCorrectIndex(i) {
+      this.question.correctIndex = i;
+    },
     decodeString(str) {
       let d = document.createElement("p");
       d.innerHTML = str;
@@ -44,14 +96,32 @@ export default {
 </script>
 
 <style scoped>
-.submit {
+.selected {
+  border: solid grey 2px;
+  color: black;
+}
+
+.incorrect {
+  background: red;
+  color: white;
+  transition: linear 1s;
+}
+
+.correct {
+  background: limegreen;
+  color: black;
+  transition: linear 1s;
+}
+
+.next, .prev {
   background: dodgerblue;
 
 }
 
-.next {
+.submit {
   background: limegreen;
 }
+
 
 .cool-button:hover {
   opacity: 0.6;

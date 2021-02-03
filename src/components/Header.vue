@@ -1,13 +1,19 @@
 <template>
   <nav>
     <p>Fancy Schmancy Quiz</p>
-    <p>Counter: 4/10</p>
+    <p>Counter: {{ index + 1 }}/10</p>
+    <p>Correct: {{ correctCount }}/{{ correctCount + incorrectCount }}</p>
   </nav>
 </template>
 
 <script>
 export default {
-  name: "Header"
+  name: "Header",
+  props: {
+    'index': Number,
+    'incorrectCount': Number,
+    'correctCount': Number
+  }
 }
 </script>
 
@@ -21,7 +27,7 @@ nav {
   /*background: linear-gradient(to top left, #cd52fa, #d89eef);*/
   border-bottom: solid grey 1px;
   font-size: 2vh;
-margin-bottom: 7vh;
+  margin-bottom: 7vh;
 
 }
 
@@ -30,6 +36,6 @@ nav > p {
   margin-right: 5vw;
   font-family: Avenir, sans-serif;
   font-weight: 700;
-  }
+}
 
 </style>
